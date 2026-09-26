@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-emerald-500 selection:text-white;
+  }
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #0D3B2E 0%, #1B4D3E 50%, #0284C7 100%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* ==========================================
+   MausamSetu Hero Weather Animations
+   ========================================== */
+
+/* 1. Cloud Drift Animations */
+@keyframes cloudDriftSlow {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes cloudDriftMid {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes cloudDriftFast {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* 2. Mist & Fog Oscillation */
+@keyframes mistOscillate {
+  0% {
+    transform: translate3d(-3%, 0, 0) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(4%, -1.5%, 0) scale(1.05);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate3d(-3%, 0, 0) scale(1);
+    opacity: 0.25;
+  }
+}
+
+/* 3. Sunlight Rays Shimmer */
+@keyframes sunRaysGlow {
+  0% {
+    opacity: 0.15;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.08) rotate(1.5deg);
+  }
+  100% {
+    opacity: 0.15;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 4. Distant Faint Rain Streaks */
+@keyframes distantRainFall {
+  0% {
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.25;
+  }
+  70% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translate3d(-15px, 100%, 0);
+    opacity: 0;
+  }
+}
+
+/* 5. Radar Sweep & Pulse */
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes radarPulseRing {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* Utility Classes */
+.animate-cloud-slow {
+  animation: cloudDriftSlow 85s linear infinite;
+  will-change: transform;
+}
+
+.animate-cloud-mid {
+  animation: cloudDriftMid 65s linear infinite;
+  will-change: transform;
+}
+
+.animate-cloud-fast {
+  animation: cloudDriftFast 48s linear infinite;
+  will-change: transform;
+}
+
+.animate-mist {
+  animation: mistOscillate 38s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-sun-rays {
+  animation: sunRaysGlow 9s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-rain-fall {
+  animation: distantRainFall 1.6s linear infinite;
+  will-change: transform, opacity;
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 4.5s linear infinite;
+  will-change: transform;
+}
+
+.animate-radar-pulse {
+  animation: radarPulseRing 5s ease-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Accessibility: Disable nonessential motion for users requesting reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-cloud-slow,
+  .animate-cloud-mid,
+  .animate-cloud-fast,
+  .animate-mist,
+  .animate-sun-rays,
+  .animate-rain-fall,
+  .animate-radar-sweep,
+  .animate-radar-pulse {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
