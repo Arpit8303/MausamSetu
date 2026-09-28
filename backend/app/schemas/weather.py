@@ -25,6 +25,8 @@ class CurrentWeatherResponse(BaseModel):
     block_name: str
     district_name: str
     state_name: str
+    latitude: float
+    longitude: float
     timestamp: datetime
     temp_c: float
     feels_like_c: float

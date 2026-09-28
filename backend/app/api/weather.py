@@ -117,7 +117,10 @@ async def get_current_weather(
     temp_max_c = today.get("temp_max_c", temp_c)
     precipitation_mm = today.get("precipitation_mm", 0.0)
     humidity_pct = current_hour.get("humidity_pct", 50.0)
-    wind_speed = current_hour.get("wind_speed_ms", 0.0) * 3.6 # convert m/s to km/h
+    wind_speed = current_hour.get("wind_speed_ms", 0.0) * 3.6  # convert m/s to km/h
+    # Real Open-Meteo fields — available since surface_pressure + weather_code added to request
+    pressure_hpa = current_hour.get("surface_pressure_hpa") or 1013.25
+    weather_condition = current_hour.get("weather_condition") or "Unknown"
     
     is_downscaled = False
     
@@ -175,6 +178,8 @@ async def get_current_weather(
         block_name=block.name,
         district_name=district.name,
         state_name=state.name,
+        latitude=panchayat.latitude,
+        longitude=panchayat.longitude,
         timestamp=datetime.utcnow(),
         temp_c=round(temp_c, 1),
         feels_like_c=round(temp_c + 1.2, 1),
@@ -186,9 +191,15 @@ async def get_current_weather(
         wind_speed_kmh=round(wind_speed, 1),
         # wind_direction from panchayat aspect (degrees). Default 180 if null.
         wind_direction_deg=getattr(panchayat, 'aspect', 180.0) or 180.0,
-        pressure_hpa=1012.8,
-        weather_condition="Clear",
+        pressure_hpa=round(pressure_hpa, 1),
+        weather_condition=weather_condition,
+        # ── Application-level placeholders ─────────────────────────────────────
+        # confidence_score: Open-Meteo does not provide a confidence metric.
+        # This is a fixed application-level value until an ML ensemble model
+        # is integrated (planned: ml/downscaling_engine.py WeatherDownscaler).
         confidence_score=0.92,
+        # uncertainty_margin_c: No statistical uncertainty is computed without
+        # a trained ensemble. Kept as a documented placeholder.
         uncertainty_margin_c=0.5,
         provider_source="Open-Meteo",
         is_simulated=False,
@@ -232,7 +243,7 @@ async def get_panchayat_forecast(panchayat_id: int = Query(...), days: int = 7, 
     for h in weather_data.get("hourly", [])[:24]:
         dt_obj = datetime.strptime(h["timestamp"], "%Y-%m-%dT%H:%MZ")
         hourly_items.append(HourlyForecastItem(
-            timestamp=dt_obj.strftime("%H:%00"),
+            timestamp=dt_obj.strftime("%H:00"),
             hour=dt_obj.hour,
             temp_c=h["temp_c"],
             humidity_pct=h["humidity_pct"],

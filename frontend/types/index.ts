@@ -28,6 +28,71 @@ export interface PanchayatLocation {
   boundary_geojson?: any;
 }
 
+// ── Matches backend NDVIData schema ─────────────────────────────────────────
+export interface NDVIData {
+  avg_ndvi: number;
+  tile_url: string;
+  generated_at: string;
+}
+
+// ── Matches backend AdvisoryData schema ─────────────────────────────────────
+export interface AdvisoryData {
+  title: string;
+  title_hi: string;
+  description: string;
+  description_hi: string;
+  recommended_action: string;
+  recommended_action_hi: string;
+  risk_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  confidence_pct: number;
+  weather_trigger: string;
+  is_official: boolean;
+}
+
+// ── Matches backend CurrentWeatherResponse schema ────────────────────────────
+export interface WeatherIntelligenceResponse {
+  panchayat_id: number;
+  panchayat_name: string;
+  block_name: string;
+  district_name: string;
+  state_name: string;
+  latitude: number;
+  longitude: number;
+  timestamp: string;
+
+  // Core weather
+  temp_c: number;
+  feels_like_c: number;
+  temp_min_c: number;
+  temp_max_c: number;
+  humidity_pct: number;
+  precipitation_mm: number;
+  precipitation_prob_pct: number;
+  wind_speed_kmh: number;
+  wind_direction_deg: number;
+  pressure_hpa: number;
+  weather_condition: string;
+
+  // ML metadata
+  confidence_score: number;
+  uncertainty_margin_c: number;
+  provider_source: string;
+  is_simulated: boolean;
+
+  // Cache / source metadata
+  data_source: string;
+  weather_cached: boolean;
+  stale: boolean;
+  downscaled: boolean;
+
+  // Optional fields — backend can return null for these
+  warnings: string[] | null;
+  ndvi: NDVIData | null;
+  ndvi_as_of: string | null;
+  advisories: AdvisoryData[] | null;
+}
+
+// ── Legacy types (used by WeatherCharts, panchayat page) ────────────────────
 export interface CurrentWeather {
   panchayat_id: number;
   panchayat_name: string;
@@ -84,11 +149,20 @@ export interface WeatherForecastResponse {
   elevation_m: number;
   model_version: string;
   generated_at: string;
+  data_source: string;
+  weather_cached: boolean;
+  stale: boolean;
+  downscaled: boolean;
   current: CurrentWeather;
   hourly: HourlyForecast[];
   daily: DailyForecast[];
+  warnings: string[] | null;
+  ndvi: NDVIData | null;
+  ndvi_as_of: string | null;
+  advisories: AdvisoryData[] | null;
 }
 
+// Legacy advisory type used by AdvisoryCard component
 export interface Advisory {
   id: number;
   panchayat_id: number;
