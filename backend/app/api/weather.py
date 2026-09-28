@@ -174,3 +174,26 @@ async def compare_block_vs_panchayats(block_id: int = Query(...), db: Session = 
         block_rainfall_mm=b_forecast["precipitation_mm"],
         panchayats=panchayat_list
     )
+
+from app.services.weather_service import (
+    get_district_forecast_service,
+    get_aws_data_service,
+    get_district_nowcast_service,
+    get_district_warning_service
+)
+
+@router.get("/district-forecast")
+async def fetch_district_forecast():
+    return await get_district_forecast_service()
+
+@router.get("/aws/{state_id}")
+async def fetch_aws_data(state_id: int):
+    return await get_aws_data_service(state_id)
+
+@router.get("/nowcast/{district_id}")
+async def fetch_nowcast(district_id: int):
+    return await get_district_nowcast_service(district_id)
+
+@router.get("/warnings/{district_id}")
+async def fetch_warnings(district_id: int):
+    return await get_district_warning_service(district_id)
