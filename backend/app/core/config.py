@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     ERA5_ENABLED: bool = True
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() == "true"
     
+    # ML & Caching
+    ENABLE_DOWNSCALER: bool = os.getenv("ENABLE_DOWNSCALER", "false").lower() == "true"
+    CACHE_WEATHER_TTL: int = int(os.getenv("CACHE_WEATHER_TTL", "1800")) # 30 mins
+    CACHE_NDVI_TTL: int = int(os.getenv("CACHE_NDVI_TTL", "86400")) # 24 hours
+    
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",

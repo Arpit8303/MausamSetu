@@ -49,6 +49,8 @@ import logging
 
 scheduler = AsyncIOScheduler()
 
+from app.core.client import http_client
+
 @app.on_event("startup")
 async def start_scheduler():
     logging.info("Starting background APScheduler...")
@@ -58,6 +60,7 @@ async def start_scheduler():
 @app.on_event("shutdown")
 async def stop_scheduler():
     scheduler.shutdown()
+    await http_client.close()
 
 @app.get("/")
 def root():
