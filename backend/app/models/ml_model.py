@@ -14,7 +14,7 @@ class MLModelVersion(Base):
     r2_temp = Column(Float, default=0.94)
     rain_precision = Column(Float, default=0.89)
     rain_recall = Column(Float, default=0.91)
-    status = Column(String(50), default="ACTIVE") # ACTIVE, ARCHIVED, TRAINING
+    status = Column(String(50), default="ACTIVE") # ACTIVE, ARCHIVED, TRAINING, FAILED
     trained_at = Column(DateTime, default=datetime.utcnow)
     artifact_path = Column(String, default="ml/artifacts/downscaling_v1.joblib")
 
