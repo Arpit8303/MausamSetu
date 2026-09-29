@@ -1,13 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from '../../../components/Navbar';
 import Footer from '../../../components/Footer';
 import LocationSelector from '../../../components/LocationSelector';
-import WeatherMap from '../../../components/WeatherMap';
-import NDVIMap from '../../../components/NDVIMap';
 import { Cloud, Droplets, Thermometer, Wind, AlertTriangle, Info, Plus, ChevronRight, Activity, Calendar, Sun, Moon, Bell, User as UserIcon } from 'lucide-react';
 import { Advisory } from '../../../types';
+
+// Leaflet accesses `window` at module load time — must be loaded client-side only
+const WeatherMap = dynamic(() => import('../../../components/WeatherMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 rounded-2xl bg-slate-100 animate-pulse" />,
+});
+const NDVIMap = dynamic(() => import('../../../components/NDVIMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 rounded-2xl bg-slate-100 animate-pulse" />,
+});
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 

@@ -10,6 +10,7 @@ import {
   WeatherIntelligenceResponse,
   WeatherForecastResponse,
   Advisory,
+  AdvisoryData,
 } from '../../../types';
 import {
   MapPin,
@@ -64,7 +65,7 @@ function DataStatusBadge({ intelligence }: { intelligence: WeatherIntelligenceRe
 }
 
 // Convert backend AdvisoryData → legacy Advisory shape for AdvisoryCard
-function toAdvisory(adv: WeatherIntelligenceResponse['advisories'][0], panchayatId: number, panchayatName: string, idx: number): Advisory {
+function toAdvisory(adv: AdvisoryData, panchayatId: number, panchayatName: string, idx: number): Advisory {
   return {
     id: idx + 1,
     panchayat_id: panchayatId,

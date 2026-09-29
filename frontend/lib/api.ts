@@ -3,6 +3,7 @@ import {
   WeatherForecastResponse,
   MLMetrics,
   SystemHealth,
+  Advisory,
 } from '../types';
 
 // ── API base URL ─────────────────────────────────────────────────────────────
@@ -85,4 +86,62 @@ export async function fetchSystemHealth(
   signal?: AbortSignal
 ): Promise<SystemHealth> {
   return apiFetch<SystemHealth>('/admin/system-health', signal);
+}
+
+// ── Advisory endpoint ─────────────────────────────────────────────────────────
+// The backend does NOT expose a dedicated advisory endpoint. Advisories are
+// returned as part of GET /api/v1/weather/intelligence?panchayat_id={id}.
+//
+// This function fetches the intelligence response, extracts the advisories
+// array, maps AdvisoryData (backend) → Advisory (frontend UI type), and
+// optionally filters by crop name (client-side, since the backend is not
+// crop-aware at advisory level).
+//
+// Fields in Advisory that have no backend equivalent are given safe defaults:
+//   id            → synthetic sequential integer
+//   panchayat_id  → the requested panchayatId
+//   panchayat_name → from the intelligence response
+//   crop_name     → the requested crop (passed in by the caller)
+//   growth_stage  → "General" (backend does not return per-stage advisories)
+//   created_at    → current ISO timestamp
+// ─────────────────────────────────────────────────────────────────────────────
+export async function fetchAdvisories(
+  panchayatId: number,
+  crop?: string,
+  signal?: AbortSignal
+): Promise<Advisory[]> {
+  let intelligence: WeatherIntelligenceResponse;
+  try {
+    intelligence = await apiFetch<WeatherIntelligenceResponse>(
+      `/weather/intelligence?panchayat_id=${panchayatId}`,
+      signal
+    );
+  } catch {
+    // Return empty array on error so the UI renders gracefully rather than crashing
+    return [];
+  }
+
+  const rawAdvisories = intelligence.advisories ?? [];
+
+  // Map AdvisoryData → Advisory, injecting safe defaults for UI-only fields
+  const mapped: Advisory[] = rawAdvisories.map((adv, idx) => ({
+    id: idx + 1,
+    panchayat_id: panchayatId,
+    panchayat_name: intelligence.panchayat_name,
+    crop_name: crop ?? 'General',
+    growth_stage: 'General',
+    title: adv.title,
+    title_hi: adv.title_hi,
+    description: adv.description,
+    description_hi: adv.description_hi,
+    recommended_action: adv.recommended_action,
+    recommended_action_hi: adv.recommended_action_hi,
+    risk_level: adv.risk_level,
+    confidence_pct: adv.confidence_pct,
+    weather_trigger: adv.weather_trigger,
+    is_official: adv.is_official,
+    created_at: new Date().toISOString(),
+  }));
+
+  return mapped;
 }
