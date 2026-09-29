@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import DashboardLayout from '../../components/DashboardLayout';
 import { fetchSystemHealth } from '../../lib/api';
 import { SystemHealth } from '../../types';
+import { useRouter } from 'next/navigation';
 import { Shield, Upload, Play, Server, Database, Cpu, Activity, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [trainStatus, setTrainStatus] = useState<string>('');
@@ -15,7 +16,15 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchSystemHealth().then((h) => setHealth(h));
-  }, []);
+
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('mausamsetu_user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      if (!user || user.role !== 'admin') {
+        router.push('/login?redirect=/admin');
+      }
+    }
+  }, [router]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -34,10 +43,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9F9F6] text-[#111827] font-sans selection:bg-[#2D6A4F] selection:text-white">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <DashboardLayout>
         
         {/* Admin Header */}
         <div className="bg-[#162E21] text-white rounded-3xl p-6 sm:p-8 shadow-lg flex flex-wrap items-center justify-between gap-6 border border-emerald-900">
@@ -159,9 +165,6 @@ export default function AdminDashboardPage() {
 
         </div>
 
-      </main>
-
-      <Footer />
-    </div>
+    </DashboardLayout>
   );
 }

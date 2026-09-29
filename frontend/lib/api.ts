@@ -2,14 +2,27 @@ import { WeatherForecastResponse, Advisory, MLMetrics, SystemHealth } from '../t
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
+async function fetchWithTimeout(url: string, timeoutMs: number = 1500): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(timeoutId);
+    return res;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
 export async function fetchPanchayatForecast(panchayatId: number = 1): Promise<WeatherForecastResponse> {
   try {
-    const res = await fetch(`${API_BASE}/weather/forecast?panchayat_id=${panchayatId}`, { cache: 'no-store' });
+    const res = await fetchWithTimeout(`${API_BASE}/weather/forecast?panchayat_id=${panchayatId}`);
     if (res.ok) {
       return await res.json();
     }
   } catch (err) {
-    console.warn("Backend API unreachable, using fallback local downscaler state");
+    // Graceful fallback to mock data when backend is offline
   }
 
   // Fallback realistic state
@@ -66,12 +79,12 @@ export async function fetchPanchayatForecast(panchayatId: number = 1): Promise<W
 
 export async function fetchAdvisories(panchayatId: number = 1, cropName: string = "Wheat"): Promise<Advisory[]> {
   try {
-    const res = await fetch(`${API_BASE}/advisories?panchayat_id=${panchayatId}&crop_name=${cropName}`, { cache: 'no-store' });
+    const res = await fetchWithTimeout(`${API_BASE}/advisories?panchayat_id=${panchayatId}&crop_name=${cropName}`);
     if (res.ok) {
       return await res.json();
     }
   } catch (err) {
-    console.warn("Backend API unreachable, using fallback advisories");
+    // Graceful fallback
   }
 
   return [
@@ -116,7 +129,7 @@ export async function fetchAdvisories(panchayatId: number = 1, cropName: string 
 
 export async function fetchMLMetrics(): Promise<MLMetrics> {
   try {
-    const res = await fetch(`${API_BASE}/ml/model/metrics`, { cache: 'no-store' });
+    const res = await fetchWithTimeout(`${API_BASE}/ml/model/metrics`);
     if (res.ok) return await res.json();
   } catch (err) {}
 
@@ -135,7 +148,7 @@ export async function fetchMLMetrics(): Promise<MLMetrics> {
 
 export async function fetchSystemHealth(): Promise<SystemHealth> {
   try {
-    const res = await fetch(`${API_BASE}/admin/system-health`, { cache: 'no-store' });
+    const res = await fetchWithTimeout(`${API_BASE}/admin/system-health`);
     if (res.ok) return await res.json();
   } catch (err) {}
 

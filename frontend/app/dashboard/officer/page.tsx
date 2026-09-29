@@ -1,22 +1,33 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../../../components/Sidebar';
+import DashboardLayout from '../../../components/DashboardLayout';
 import RightPanel from '../../../components/RightPanel';
 import WeatherMap from '../../../components/WeatherMap';
 import LocationSelector from '../../../components/LocationSelector';
 import { fetchMLMetrics } from '../../../lib/api';
 import { MLMetrics } from '../../../types';
-import { BarChart3, Filter, FileSpreadsheet, Sparkles, ShieldCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { BarChart3, Filter, FileSpreadsheet, Sparkles, ShieldCheck, User } from 'lucide-react';
 
 export default function OfficerDashboard() {
+  const router = useRouter();
   const [metrics, setMetrics] = useState<MLMetrics | null>(null);
   const [selectedPanchayatId, setSelectedPanchayatId] = useState<number>(1);
   const [searchFilter, setSearchFilter] = useState<string>('');
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
 
   useEffect(() => {
     fetchMLMetrics().then((m) => setMetrics(m));
-  }, []);
+
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('mausamsetu_user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      if (!user || (user.role !== 'officer' && user.role !== 'admin')) {
+        router.push('/login?redirect=/dashboard/officer');
+      }
+    }
+  }, [router]);
 
   const tableData = [
     { id: 1, name: "Amausi (अमौसी)", block: "Sarojini Nagar", elev: "128m", bTemp: "32.0°C", pTemp: "31.4°C", anomaly: "-0.6°C", rain: "0.0mm", risk: "LOW" },
@@ -44,13 +55,7 @@ export default function OfficerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EAF4EC] flex flex-col md:flex-row font-sans">
-      
-      {/* 1. Left Fixed Sidebar */}
-      <Sidebar />
-
-      {/* 2. Central Workspace */}
-      <main className="flex-1 bg-white p-6 sm:p-8 lg:p-10 space-y-6 overflow-y-auto">
+    <DashboardLayout>
         
         {/* Officer Header */}
         <div className="bg-[#075E63] text-white rounded-3xl p-6 sm:p-8 shadow-md border border-teal-800 flex flex-wrap items-center justify-between gap-6">
@@ -64,12 +69,26 @@ export default function OfficerDashboard() {
             </p>
           </div>
 
-          <button
-            onClick={exportCSV}
-            className="px-5 py-3 rounded-2xl bg-[#34B27B] hover:bg-emerald-600 text-white text-xs font-bold shadow-lg shadow-emerald-950/20 flex items-center gap-2 transition-all hover:scale-105"
-          >
-            <FileSpreadsheet className="w-4 h-4" /> Export CSV Report
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportCSV}
+              className="px-5 py-3 rounded-2xl bg-[#34B27B] hover:bg-emerald-600 text-white text-xs font-bold shadow-lg shadow-emerald-950/20 flex items-center gap-2 transition-all hover:scale-105"
+            >
+              <FileSpreadsheet className="w-4 h-4" /> Export CSV Report
+            </button>
+
+            {/* Profile Avatar Toggle Button */}
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="p-1 rounded-2xl bg-white/20 hover:bg-white/30 text-white transition-all border border-white/30 backdrop-blur-md shadow-md flex items-center gap-2 pl-2 pr-3 hover:scale-105"
+              title="Open Officer Profile"
+            >
+              <div className="w-8 h-8 rounded-xl bg-emerald-400 text-slate-900 flex items-center justify-center font-bold text-xs shadow">
+                <User className="w-4.5 h-4.5 text-[#075E63]" />
+              </div>
+              <span className="text-xs font-bold text-white hidden sm:inline">Profile</span>
+            </button>
+          </div>
         </div>
 
         {/* Location Dropdown Cascade */}
@@ -136,15 +155,14 @@ export default function OfficerDashboard() {
           </div>
         </div>
 
-      </main>
-
-      {/* 3. Signature Right Panel */}
+      {/* Collapsible Right Profile Drawer (Closed by Default) */}
       <RightPanel
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
         user={{ id: 2, email: 'officer@mausamsetu.in', full_name: 'Priya Verma', role: 'agricultural_officer' }}
         panchayatName="District Command"
         districtName="Lucknow, Uttar Pradesh"
       />
-
-    </div>
+    </DashboardLayout>
   );
 }

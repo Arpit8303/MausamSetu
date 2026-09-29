@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
@@ -12,6 +12,36 @@ export default function LoginPage() {
   const [email, setEmail] = useState('farmer@mausamsetu.in');
   const [password, setPassword] = useState('Farmer@123');
   const [role, setRole] = useState<'farmer' | 'officer' | 'admin'>('farmer');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Clear stale user session when explicitly visiting login page
+      localStorage.removeItem('mausamsetu_user');
+      sessionStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      if ((window as any).supabase?.auth?.signOut) {
+        try {
+          (window as any).supabase.auth.signOut();
+        } catch (err) {}
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const redirectPath = params.get('redirect');
+      if (redirectPath === '/dashboard/officer') {
+        setRole('officer');
+        setEmail('officer@mausamsetu.in');
+        setPassword('Officer@123');
+      } else if (redirectPath === '/admin') {
+        setRole('admin');
+        setEmail('admin@mausamsetu.in');
+        setPassword('Admin@123');
+      }
+    }
+  }, []);
 
   const handleQuickFill = (selectedRole: 'farmer' | 'officer' | 'admin') => {
     setRole(selectedRole);
@@ -29,9 +59,30 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (role === 'farmer') router.push('/dashboard/farmer');
-    else if (role === 'officer') router.push('/dashboard/officer');
-    else router.push('/admin');
+    
+    // Persist authenticated user session
+    const userSession = {
+      email,
+      role,
+      token: 'demo-jwt-token',
+      logged_at: new Date().toISOString()
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mausamsetu_user', JSON.stringify(userSession));
+    }
+
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const redirectUrl = params?.get('redirect');
+
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    } else if (role === 'farmer') {
+      router.push('/dashboard/farmer');
+    } else if (role === 'officer') {
+      router.push('/dashboard/officer');
+    } else {
+      router.push('/admin');
+    }
   };
 
   return (

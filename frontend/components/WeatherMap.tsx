@@ -59,7 +59,7 @@ export default function WeatherMap({ selectedPanchayatId = 1, onSelectPanchayat 
       </div>
 
       {/* Visual Canvas Representation */}
-      <div className="relative h-96 bg-slate-900 overflow-hidden flex items-center justify-center">
+      <div className="relative min-h-[420px] bg-slate-900 overflow-hidden flex items-center justify-center p-4">
         
         {/* OpenStreetMap style background map simulation */}
         <div
@@ -77,7 +77,7 @@ export default function WeatherMap({ selectedPanchayatId = 1, onSelectPanchayat 
         </svg>
 
         {/* Panchayat Pin Cards Overlay */}
-        <div className="absolute inset-0 p-6 grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
+        <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 my-auto">
           {samplePanchayats.map((p) => {
             const isSelected = p.id === selectedPanchayatId;
 
@@ -88,36 +88,36 @@ export default function WeatherMap({ selectedPanchayatId = 1, onSelectPanchayat 
                 className={`p-3.5 rounded-2xl cursor-pointer transition-all transform hover:-translate-y-1 shadow-lg backdrop-blur-md ${
                   isSelected
                     ? 'bg-emerald-950/90 border-2 border-emerald-400 text-white ring-4 ring-emerald-500/20'
-                    : 'bg-slate-900/80 border border-slate-700 text-slate-200 hover:border-slate-500'
+                    : 'bg-slate-900/85 border border-slate-700 text-slate-200 hover:border-slate-500'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                <div className="flex items-center justify-between gap-1 mb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
                     <span className="font-bold text-xs truncate">{p.name}</span>
                   </div>
-                  {isSelected && <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />}
+                  {isSelected && <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse flex-shrink-0" />}
                 </div>
 
-                <div className="space-y-1 text-[11px] text-slate-300">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">DEM Elev:</span>
-                    <span className="font-mono font-medium">{p.elev}m</span>
+                <div className="space-y-1.5 text-[11px] text-slate-300">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 whitespace-nowrap">DEM Elev:</span>
+                    <span className="font-mono font-medium whitespace-nowrap">{p.elev}m</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Downscaled T:</span>
-                    <span className="font-mono font-semibold text-emerald-300">{p.temp}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 whitespace-nowrap">Downscaled Temp:</span>
+                    <span className="font-mono font-semibold text-emerald-300 whitespace-nowrap">{p.temp}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Expected Rain:</span>
-                    <span className="font-mono font-semibold text-sky-300">{p.rain}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 whitespace-nowrap">Expected Rain:</span>
+                    <span className="font-mono font-semibold text-sky-300 whitespace-nowrap">{p.rain}</span>
                   </div>
                 </div>
 
-                <div className="mt-2 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[10px]">
+                <div className="mt-2.5 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[10px]">
                   <span className="text-slate-400">Agri Risk:</span>
                   <span
-                    className={`font-bold px-1.5 py-0.5 rounded ${
+                    className={`font-bold px-2 py-0.5 rounded ${
                       p.risk === 'HIGH' ? 'bg-red-900/80 text-red-300' : p.risk === 'MEDIUM' ? 'bg-amber-900/80 text-amber-300' : 'bg-emerald-900/80 text-emerald-300'
                     }`}
                   >

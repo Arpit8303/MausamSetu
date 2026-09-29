@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '../../../components/Navbar';
-import Footer from '../../../components/Footer';
+import DashboardLayout from '../../../components/DashboardLayout';
 import WeatherCharts from '../../../components/WeatherCharts';
 import AdvisoryCard from '../../../components/AdvisoryCard';
 import { fetchPanchayatForecast, fetchAdvisories } from '../../../lib/api';
@@ -10,7 +9,7 @@ import { WeatherForecastResponse, Advisory } from '../../../types';
 import { MapPin, Thermometer, Droplets, Wind, ShieldCheck, Sparkles, Navigation } from 'lucide-react';
 
 export default function PanchayatDetailPage({ params }: { params: { id: string } }) {
-  const panchayatId = parseInt(params.id) || 1;
+  const panchayatId = parseInt(params?.id) || 1;
   const [forecast, setForecast] = useState<WeatherForecastResponse | null>(null);
   const [advisories, setAdvisories] = useState<Advisory[]>([]);
 
@@ -20,10 +19,7 @@ export default function PanchayatDetailPage({ params }: { params: { id: string }
   }, [panchayatId]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <DashboardLayout>
         
         {/* Panchayat Header */}
         {forecast && (
@@ -86,9 +82,6 @@ export default function PanchayatDetailPage({ params }: { params: { id: string }
           </div>
         </div>
 
-      </main>
-
-      <Footer />
-    </div>
+    </DashboardLayout>
   );
 }

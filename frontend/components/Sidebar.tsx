@@ -2,11 +2,33 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { CloudSun, LayoutDashboard, Map, CalendarDays, Sprout, Bell, History, Settings, LogOut } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('mausamsetu_user');
+      sessionStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      if ((window as any).supabase?.auth?.signOut) {
+        try {
+          (window as any).supabase.auth.signOut();
+        } catch (err) {
+          console.warn('Supabase signOut warning:', err);
+        }
+      }
+    }
+    router.push('/login');
+  };
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard/farmer', icon: LayoutDashboard },
@@ -19,14 +41,14 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Desktop Fixed Left Sidebar (72px - 80px) */}
-      <aside className="hidden md:flex flex-col items-center justify-between w-20 py-6 bg-white border-r border-slate-100 flex-shrink-0 z-30">
+      {/* Desktop Fixed Left Sidebar */}
+      <aside className="hidden md:flex flex-col items-center justify-between w-20 h-screen sticky top-0 py-6 bg-white border-r border-slate-100 flex-shrink-0 z-30">
         
         {/* Brand Logo */}
         <div className="flex flex-col items-center gap-1">
           <Link
             href="/"
-            className="w-12 h-12 bg-white rounded-2xl p-1 flex items-center justify-center shadow-md border border-slate-200/60 hover:scale-105 transition-transform overflow-hidden"
+            className="w-12 h-12 flex items-center justify-center hover:scale-105 transition-transform overflow-hidden"
             title="MausamSetu Home"
           >
             <img src="/logo.png" alt="MausamSetu Logo" className="w-full h-full object-contain" />
@@ -52,7 +74,7 @@ export default function Sidebar() {
               >
                 <Icon className="w-5 h-5" />
                 {isActive && (
-                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-[#34B27B] rounded-r-full" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-[#34B27B] rounded-r-full" />
                 )}
                 
                 {/* Tooltip */}
@@ -66,13 +88,13 @@ export default function Sidebar() {
 
         {/* Bottom Logout / Settings */}
         <div className="flex flex-col items-center gap-3">
-          <Link
-            href="/login"
+          <button
+            onClick={handleLogout}
             className="p-3 text-[#82918E] hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors"
             title="Logout"
           >
             <LogOut className="w-5 h-5" />
-          </Link>
+          </button>
         </div>
 
       </aside>

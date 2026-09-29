@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import DashboardLayout from '../../components/DashboardLayout';
 import AdvisoryCard from '../../components/AdvisoryCard';
 import LocationSelector from '../../components/LocationSelector';
 import { fetchAdvisories } from '../../lib/api';
@@ -20,10 +19,7 @@ export default function AdvisoryCenterPage() {
   }, [panchayatId, selectedCrop]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9F9F6] text-[#111827] font-sans selection:bg-[#2D6A4F] selection:text-white">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <DashboardLayout>
         
         {/* Advisory Header Banner matching AgriConnect */}
         <div className="bg-[#162E21] text-white rounded-3xl p-6 sm:p-8 shadow-lg flex flex-wrap items-center justify-between gap-6">
@@ -111,9 +107,6 @@ export default function AdvisoryCenterPage() {
           </div>
         </div>
 
-      </main>
-
-      <Footer />
-    </div>
+    </DashboardLayout>
   );
 }
