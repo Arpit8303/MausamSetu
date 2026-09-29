@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sprout, Languages, LogIn } from 'lucide-react';
 import { translations, Language } from '../lib/i18n';
 
@@ -14,6 +14,7 @@ interface NavbarProps {
 
 export default function Navbar({ lang = 'en', onLanguageChange, transparent = false }: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [currentLang, setCurrentLang] = useState<Language>(lang);
   const t = translations[currentLang];
 
@@ -31,6 +32,41 @@ export default function Navbar({ lang = 'en', onLanguageChange, transparent = fa
     { name: 'Admin Ops', href: '/admin' },
   ];
 
+  const handleNavClick = (e: React.MouseEvent, link: { name: string; href: string }) => {
+    e.preventDefault();
+
+    // Public routes navigate directly
+    if (link.href === '/' || link.href === '/dashboard/farmer' || link.href === '/advisories') {
+      router.push(link.href);
+      return;
+    }
+
+    // Protected routes check
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('mausamsetu_user') : null;
+    const user = storedUser ? JSON.parse(storedUser) : null;
+
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(link.href)}`);
+      return;
+    }
+
+    if (link.href === '/dashboard/officer') {
+      if (user.role === 'officer' || user.role === 'admin') {
+        router.push('/dashboard/officer');
+      } else {
+        router.push(`/login?redirect=${encodeURIComponent(link.href)}`);
+      }
+    } else if (link.href === '/admin') {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push(`/login?redirect=${encodeURIComponent(link.href)}`);
+      }
+    } else {
+      router.push(link.href);
+    }
+  };
+
   const isHomepage = pathname === '/';
   const isTransparent = transparent || isHomepage;
 
@@ -45,11 +81,12 @@ export default function Navbar({ lang = 'en', onLanguageChange, transparent = fa
           
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className={`p-1.5 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform ${
-              isTransparent ? 'bg-white/90 shadow-md backdrop-blur-md' : 'bg-white shadow-sm border border-slate-200/60'
-            }`}>
-              <img src="/logo.png" alt="MausamSetu Logo" className="h-9 sm:h-11 w-auto object-contain" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="MausamSetu Logo"
+              className="h-10 sm:h-12 w-auto object-contain group-hover:scale-105 transition-transform"
+              style={{ maxHeight: '48px', width: 'auto' }}
+            />
             <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full hidden sm:inline-block ${
               isTransparent ? 'bg-white/20 text-emerald-300 backdrop-blur-md border border-white/20' : 'bg-[#EAF3DE] text-[#2D6A4F]'
             }`}>
@@ -65,6 +102,7 @@ export default function Navbar({ lang = 'en', onLanguageChange, transparent = fa
                 <Link
                   key={link.name}
                   href={link.href}
+                  onClick={(e) => handleNavClick(e, link)}
                   className={`relative py-1 transition-colors ${
                     isTransparent
                       ? (isActive ? 'text-emerald-300 font-extrabold drop-shadow' : 'text-white/90 hover:text-white drop-shadow')
@@ -95,7 +133,7 @@ export default function Navbar({ lang = 'en', onLanguageChange, transparent = fa
             </button>
 
             <Link
-              href="/dashboard/farmer"
+              href="/login"
               className="flex items-center gap-2 text-xs font-bold px-5 py-2.5 rounded-full bg-[#22C55E] hover:bg-[#16A34A] text-slate-950 shadow-xl transition-all hover:scale-105"
             >
               <span>Get Started</span>

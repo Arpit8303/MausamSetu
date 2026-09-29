@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { User, Edit3, Sun, Sunset, MapPin, CloudSun, Sparkles } from 'lucide-react';
+import { User, Edit3, Sun, Sunset, MapPin, CloudSun, Sparkles, X, LogOut } from 'lucide-react';
 import { User as UserType } from '../types';
 
 interface RightPanelProps {
@@ -11,6 +11,8 @@ interface RightPanelProps {
   districtName?: string;
   tempMax?: number;
   weatherCond?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export default function RightPanel({
@@ -18,13 +20,53 @@ export default function RightPanel({
   panchayatName = 'Amausi Panchayat',
   districtName = 'Lucknow, Uttar Pradesh',
   tempMax = 31.4,
-  weatherCond = 'Partly Cloudy'
+  weatherCond = 'Partly Cloudy',
+  isOpen,
+  onClose
 }: RightPanelProps) {
-  return (
-    <aside className="w-full lg:w-[320px] xl:w-[360px] bg-gradient-to-b from-[#075E63] via-[#064E3B] to-[#043327] text-white flex-shrink-0 flex flex-col justify-between relative overflow-hidden min-h-screen z-20 shadow-2xl">
+  // If drawer mode is controlled and currently closed, do not render
+  if (isOpen === false) return null;
+
+  const isDrawerMode = isOpen !== undefined;
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('mausamsetu_user');
+      sessionStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      if ((window as any).supabase?.auth?.signOut) {
+        try {
+          (window as any).supabase.auth.signOut();
+        } catch (err) {}
+      }
+      window.location.href = '/login';
+    }
+  };
+
+  const content = (
+    <aside className={`bg-gradient-to-b from-[#075E63] via-[#064E3B] to-[#043327] text-white flex-shrink-0 flex flex-col justify-between relative overflow-hidden z-20 ${
+      isDrawerMode
+        ? 'w-full h-full min-h-full overflow-y-auto shadow-2xl'
+        : 'w-full xl:w-[320px] 2xl:w-[350px] min-h-full h-auto self-stretch shadow-xl'
+    }`}>
       
       {/* Background Starlight / Cloud Dots */}
       <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#FFF_1px,transparent_1px)] [background-size:16px_16px]" />
+
+      {/* Close button for drawer mode */}
+      {isDrawerMode && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-30"
+          title="Close Profile Drawer"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
 
       <div className="p-6 space-y-6 relative z-10">
         
@@ -46,14 +88,24 @@ export default function RightPanel({
             <p className="text-xs text-emerald-200 font-medium">Progressive Farmer • Lucknow</p>
           </div>
 
-          {/* Edit Profile Button */}
-          <Link
-            href="/admin"
-            className="px-5 py-1.5 rounded-full bg-white text-slate-900 font-bold text-xs shadow-md hover:bg-emerald-50 transition-all flex items-center gap-1.5 hover:scale-105"
-          >
-            <Edit3 className="w-3.5 h-3.5 text-[#064E3B]" />
-            <span>Edit Profile</span>
-          </Link>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin"
+              className="px-4 py-1.5 rounded-full bg-white text-slate-900 font-bold text-xs shadow-md hover:bg-emerald-50 transition-all flex items-center gap-1.5 hover:scale-105"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-[#064E3B]" />
+              <span>Edit Profile</span>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-1.5 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/30 font-bold text-xs shadow-md transition-all flex items-center gap-1.5 hover:scale-105"
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5 text-red-300" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
 
         {/* Sunrise / Sunset Pill Card (Matching Reference's Work Start/End) */}
@@ -147,4 +199,23 @@ export default function RightPanel({
 
     </aside>
   );
+
+  if (isDrawerMode) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-hidden">
+        {/* Backdrop overlay */}
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+        />
+
+        {/* Slide-over Drawer */}
+        <div className="fixed top-0 right-0 bottom-0 w-full sm:w-[380px] max-w-full z-50 shadow-2xl animate-in slide-in-from-right duration-300">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 }

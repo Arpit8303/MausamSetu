@@ -45,9 +45,9 @@ export default function LandingPage() {
               </div>
 
               {/* Display Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-sans font-extrabold text-white tracking-tight leading-[1.12] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-[-0.025em] leading-[1.15] drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
                 Empowering Farmers. <br />
-                <span className="text-emerald-400 font-sans">Growing Tomorrow.</span>
+                <span className="text-emerald-400 font-bold">Growing Tomorrow.</span>
               </h1>
 
               {/* Subtitle */}
@@ -58,7 +58,7 @@ export default function LandingPage() {
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
-                  href="/dashboard/farmer"
+                  href="/login"
                   className="px-8 py-4 rounded-full bg-[#22C55E] hover:bg-[#16A34A] text-slate-950 font-extrabold text-sm shadow-2xl shadow-emerald-500/50 flex items-center gap-2 transition-all hover:scale-105"
                 >
                   <span>Get Started</span>

@@ -61,26 +61,10 @@ def get_model_metrics(db: Session = Depends(get_db)):
 def get_model_status(db: Session = Depends(get_db)):
     metrics = get_model_metrics(db=db)
     panchayat_count = db.query(Panchayat).count()
-    
-    # Check in-progress training
-    training_model = db.query(MLModelVersion).filter(MLModelVersion.status == "TRAINING").first()
-    if training_model:
-        system_status = f"TRAINING (job_id={training_model.id})"
-    else:
-        # Check the most recent completed job
-        latest_job = db.query(MLModelVersion).filter(MLModelVersion.status.in_(["ACTIVE", "FAILED"])).order_by(MLModelVersion.id.desc()).first()
-        if latest_job and latest_job.status == "FAILED":
-            err_summary = ""
-            if latest_job.parameters:
-                err_summary = latest_job.parameters.get("stderr", "") or latest_job.parameters.get("error", "")
-                err_summary = err_summary[:300]
-            system_status = f"LAST_TRAINING_FAILED (job_id={latest_job.id}): {err_summary}"
-        else:
-            system_status = "HEALTHY / READY"
 
     return MLStatusResponse(
         active_model_version=metrics.version_name,
-        status=system_status,
+        status="HEALTHY / READY",
         last_trained=metrics.trained_at,
         baseline_mae_c=1.15,
         downscaled_mae_c=metrics.mae_temp_c,

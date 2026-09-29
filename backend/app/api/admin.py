@@ -1,26 +1,18 @@
 import subprocess
-import os
-import logging
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from app.db.session import get_db, SessionLocal
+from app.db.session import get_db
 from app.core.config import settings
 from app.models.user import User
 from app.models.location import Panchayat
-from app.models.ml_model import IngestionLog, AuditLog, MLModelVersion
+from app.models.ml_model import IngestionLog, AuditLog
 from app.schemas.auth import UserResponse
 from app.schemas.admin import SystemHealthResponse, IngestionLogSchema
 from app.data_ingestion.csv_parser import CSVDatasetParser
 
 router = APIRouter(prefix="/admin", tags=["Administrator Dashboard"])
-
-logger = logging.getLogger(__name__)
-
-# Absolute path to repo root (backend/app/api/admin.py → go up 4 levels → repo root)
-# admin.py → api/ → app/ → backend/ → repo root (MausamSetu/)
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 @router.get("/users", response_model=List[UserResponse])
 def list_users(db: Session = Depends(get_db)):
@@ -73,64 +65,17 @@ async def upload_weather_dataset(file: UploadFile = File(...), db: Session = Dep
         "filename": file.filename
     }
 
-def _run_training(job_id: int):
-    db = SessionLocal()
-    try:
-        script_path = os.path.join(REPO_ROOT, "ml", "train_and_eval.py")
-        logger.info(f"[Training job_id={job_id}] Starting subprocess: python {script_path} (cwd={REPO_ROOT})")
-        res = subprocess.run(
-            ["python", script_path],
-            capture_output=True, text=True, check=True,
-            cwd=REPO_ROOT
-        )
-        logger.info(f"[Training job_id={job_id}] Completed successfully.\nSTDOUT:\n{res.stdout}")
-        model = db.query(MLModelVersion).filter(MLModelVersion.id == job_id).first()
-        if model:
-            model.status = "ACTIVE"
-            model.parameters = {"stdout": res.stdout[:2000]}
-            db.commit()
-    except subprocess.CalledProcessError as e:
-        logger.error(f"[Training job_id={job_id}] FAILED (CalledProcessError).\nSTDERR:\n{e.stderr}\nSTDOUT:\n{e.stdout}")
-        model = db.query(MLModelVersion).filter(MLModelVersion.id == job_id).first()
-        if model:
-            model.status = "FAILED"
-            model.parameters = {"error": str(e), "stderr": e.stderr[:2000], "stdout": e.stdout[:2000]}
-            db.commit()
-    except Exception as e:
-        logger.error(f"[Training job_id={job_id}] FAILED (unexpected exception): {e}")
-        model = db.query(MLModelVersion).filter(MLModelVersion.id == job_id).first()
-        if model:
-            model.status = "FAILED"
-            model.parameters = {"error": str(e)}
-            db.commit()
-    finally:
-        db.close()
-
 @router.post("/models/train")
-def train_model(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    existing = db.query(MLModelVersion).filter(MLModelVersion.status == "TRAINING").first()
-    if existing:
+def train_model(db: Session = Depends(get_db)):
+    try:
+        res = subprocess.run(["python", "ml/train_and_eval.py"], capture_output=True, text=True, check=True)
         return {
-            "status": "ALREADY_TRAINING",
-            "message": "A model training job is already in progress.",
-            "job_id": existing.id
+            "status": "SUCCESS",
+            "message": "Model retrained successfully",
+            "output": res.stdout
         }
-        
-    new_model = MLModelVersion(
-        version_name=f"v-temp-{datetime.utcnow().timestamp()}",
-        status="TRAINING"
-    )
-    db.add(new_model)
-    db.commit()
-    db.refresh(new_model)
-    
-    background_tasks.add_task(_run_training, new_model.id)
-    
-    return {
-        "status": "training_started",
-        "message": "Model retraining has been scheduled in the background.",
-        "job_id": new_model.id
-    }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Model training failed: {str(e)}")
 
 @router.get("/ingestion-logs", response_model=List[IngestionLogSchema])
 def get_ingestion_logs(db: Session = Depends(get_db)):
