@@ -21,6 +21,20 @@ class Settings(BaseSettings):
     ERA5_ENABLED: bool = True
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() == "true"
     
+    # ML & Caching
+    ENABLE_DOWNSCALER: bool = os.getenv("ENABLE_DOWNSCALER", "false").lower() == "true"
+    CACHE_WEATHER_TTL: int = int(os.getenv("CACHE_WEATHER_TTL", "1800")) # 30 mins
+    CACHE_NDVI_TTL: int = int(os.getenv("CACHE_NDVI_TTL", "86400")) # 24 hours
+    
+    # Supabase
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
+
+    # Google Earth Engine
+    GEE_PROJECT_ID: str = os.getenv("GEE_PROJECT_ID", "absolute-codex-286216")
+    GEE_SERVICE_ACCOUNT_EMAIL: str = os.getenv("GEE_SERVICE_ACCOUNT_EMAIL", "")
+    GEE_PRIVATE_KEY_PATH: str = os.getenv("GEE_PRIVATE_KEY_PATH", "")
+
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
@@ -28,7 +42,11 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000"
     ]
-    
-    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        env_file=".env",
+        extra="ignore"   # ignore unknown .env keys instead of crashing
+    )
 
 settings = Settings()

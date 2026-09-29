@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -7,6 +7,7 @@ class State(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(10), unique=True, index=True, nullable=False)
+    lgd_code = Column(String(10), unique=True, index=True, nullable=True)
     name = Column(String(100), nullable=False)
     name_hi = Column(String(100), nullable=True)
 
@@ -18,6 +19,7 @@ class District(Base):
     id = Column(Integer, primary_key=True, index=True)
     state_id = Column(Integer, ForeignKey("states.id"), nullable=False)
     code = Column(String(10), index=True, nullable=False)
+    lgd_code = Column(String(10), index=True, nullable=True)
     name = Column(String(100), nullable=False)
     name_hi = Column(String(100), nullable=True)
     latitude = Column(Float, nullable=True)
@@ -25,6 +27,37 @@ class District(Base):
 
     state = relationship("State", back_populates="districts")
     blocks = relationship("Block", back_populates="district", cascade="all, delete-orphan")
+    subdistricts = relationship("Subdistrict", back_populates="district", cascade="all, delete-orphan")
+
+class Subdistrict(Base):
+    __tablename__ = "subdistricts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    district_id = Column(Integer, ForeignKey("districts.id"), nullable=False)
+    code = Column(String(10), nullable=False)
+    name = Column(String(100), nullable=False)
+    name_hi = Column(String(100), nullable=True)
+
+    district = relationship("District", back_populates="subdistricts")
+    villages = relationship("Village", back_populates="subdistrict", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        UniqueConstraint('district_id', 'code', name='uix_district_subdistrict_code'),
+    )
+
+class Village(Base):
+    __tablename__ = "villages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subdistrict_id = Column(Integer, ForeignKey("subdistricts.id"), nullable=False, index=True)
+    panchayat_id = Column(Integer, ForeignKey("panchayats.id"), nullable=True)
+    code = Column(String(20), unique=True, index=True, nullable=False)
+    name = Column(String(100), nullable=False, index=True)
+    name_hi = Column(String(100), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+
+    subdistrict = relationship("Subdistrict", back_populates="villages")
 
 class Block(Base):
     __tablename__ = "blocks"

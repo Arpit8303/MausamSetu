@@ -2,13 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/DashboardLayout';
+import dynamic from 'next/dynamic';
 import RightPanel from '../../../components/RightPanel';
-import WeatherMap from '../../../components/WeatherMap';
 import LocationSelector from '../../../components/LocationSelector';
 import { fetchMLMetrics } from '../../../lib/api';
 import { MLMetrics } from '../../../types';
 import { useRouter } from 'next/navigation';
 import { BarChart3, Filter, FileSpreadsheet, Sparkles, ShieldCheck, User } from 'lucide-react';
+
+// Leaflet accesses `window` at module load time — must be loaded client-side only
+const WeatherMap = dynamic(() => import('../../../components/WeatherMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 rounded-2xl bg-slate-100 animate-pulse" />,
+});
 
 export default function OfficerDashboard() {
   const router = useRouter();

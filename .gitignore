@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+backend/.env
+backend/secrets/
+backend/secrets/*.json
+*.pem
+*.key
+__pycache__/
+*.pyc
+node_modules/
+.next/
+*.sqlite3
+*.db
+backend/data/lgd/*.csv

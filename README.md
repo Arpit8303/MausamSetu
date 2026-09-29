@@ -1,3 +1,5 @@
+
+
 # MausamSetu (मौसमसेतु) 🌾☀️🌧️
 > **Tagline**: *“Har Panchayat Ka Mausam, Har Kisan Ke Naam.”*  
 > **SIH 2026 Problem Statement**: 26074 - AI-Powered Weather Downscaling & Agro-Meteorological Advisory Platform for Indian Panchayats.
@@ -59,10 +61,23 @@ python ml/train_and_eval.py
 #### 2. Backend FastAPI Launch
 ```bash
 cd backend
+cp .env.example .env
+# Important: Fill in real values in .env. Never commit .env or service account keys to git.
 pip install -r requirements.txt
 python app/main.py
 ```
 *Backend runs on http://127.0.0.1:8000*
+
+#### 3. Database Migrations (Alembic)
+To apply the latest database schema changes:
+```bash
+cd backend
+alembic upgrade head
+```
+To create a new migration after updating models in `app/models/`:
+```bash
+alembic revision --autogenerate -m "description of changes"
+```
 
 #### 3. Frontend Next.js Launch
 ```bash

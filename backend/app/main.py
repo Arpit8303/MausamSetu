@@ -1,15 +1,15 @@
+# Ensure repository root is in sys.path so 'ml' module can be imported
 import os
 import sys
-
-# Ensure backend root is in sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(REPO_ROOT)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.session import engine, Base
 from app.db.seed import seed_database
-from app.api import auth, locations, weather, ml, advisories, admin
+from app.api import auth, locations, weather, ml, advisories, admin, ndvi
 
 # Ensure DB tables and seed data exist
 Base.metadata.create_all(bind=engine)
@@ -41,6 +41,26 @@ app.include_router(weather.router, prefix=settings.API_V1_STR)
 app.include_router(ml.router, prefix=settings.API_V1_STR)
 app.include_router(advisories.router, prefix=settings.API_V1_STR)
 app.include_router(admin.router, prefix=settings.API_V1_STR)
+app.include_router(ndvi.router, prefix=settings.API_V1_STR)
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from app.services.weather_service import sync_district_rainfall_forecast
+import logging
+
+scheduler = AsyncIOScheduler()
+
+from app.core.client import http_client
+
+@app.on_event("startup")
+async def start_scheduler():
+    logging.info("Starting background APScheduler...")
+    scheduler.add_job(sync_district_rainfall_forecast, 'interval', hours=4)
+    scheduler.start()
+
+@app.on_event("shutdown")
+async def stop_scheduler():
+    scheduler.shutdown()
+    await http_client.close()
 
 @app.get("/")
 def root():
