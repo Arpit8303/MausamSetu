@@ -1,9 +1,10 @@
 import os
 import sys
 
-# Ensure backend root is in sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+# Ensure backend root and project root are in sys.path
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(backend_dir)
+sys.path.append(os.path.dirname(backend_dir)) # To import 'ml' module
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
