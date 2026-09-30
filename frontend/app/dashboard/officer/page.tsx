@@ -3,7 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/DashboardLayout';
 import RightPanel from '../../../components/RightPanel';
-import WeatherMap from '../../../components/WeatherMap';
+import dynamic from 'next/dynamic';
+
+// Leaflet accesses `window` at module load time — must be loaded client-side only
+const WeatherMap = dynamic(() => import('../../../components/WeatherMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 rounded-2xl bg-slate-100 animate-pulse" />,
+});
 import LocationSelector from '../../../components/LocationSelector';
 import { fetchMLMetrics } from '../../../lib/api';
 import { MLMetrics } from '../../../types';
